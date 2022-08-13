@@ -3,7 +3,7 @@
 setlocal
 
 set CC=cl
-set CFLAGS=/W2 /Zi /nologo /Femycraft.exe /MD /MP4
+set CFLAGS=/W3 /Zi /nologo /Femycraft.exe /MD /MP4
 set CFLAGS=%CFLAGS% /Iw:\mycraft\libs /Iw:\mycraft\libs\glfw\include /Iw:\mycraft\libs\glm
 set CFLAGS=%CFLAGS% /Femycraft.exe
 set LINKFLAGS=glfw3.lib opengl32.lib shell32.lib gdi32.lib user32.lib kernel32.lib /link
