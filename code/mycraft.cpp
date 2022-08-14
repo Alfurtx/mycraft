@@ -1,16 +1,61 @@
 #include "common.hpp"
+#include "mycraft_camera.hpp"
 #include "mycraft_renderer.hpp"
 
 internal void resize_window_callback(GLFWwindow* handle, int w, int h);
 internal void cursor_position_callback(GLFWwindow* handle, double x, double y);
-internal void keyboard_callback(GLFWwindow* handle, int key, int scancode, int action, int mods);
+internal void process_input(GLFWwindow* handle);
 internal void mouse_callback(GLFWwindow* handle, int button, int action, int mods);
 
 float vertices[] = {
-    -0.5f, -0.5f, 0.0f,
-     0.5f, -0.5f, 0.0f,
-     0.0f,  0.5f, 0.0f
+    -0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f, -0.5f,
+     0.5f,  0.5f, -0.5f,
+     0.5f,  0.5f, -0.5f,
+    -0.5f,  0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f,
+
+    -0.5f, -0.5f,  0.5f,
+     0.5f, -0.5f,  0.5f,
+     0.5f,  0.5f,  0.5f,
+     0.5f,  0.5f,  0.5f,
+    -0.5f,  0.5f,  0.5f,
+    -0.5f, -0.5f,  0.5f,
+
+    -0.5f,  0.5f,  0.5f,
+    -0.5f,  0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f,
+    -0.5f, -0.5f,  0.5f,
+    -0.5f,  0.5f,  0.5f,
+
+     0.5f,  0.5f,  0.5f,
+     0.5f,  0.5f, -0.5f,
+     0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f,  0.5f,
+     0.5f,  0.5f,  0.5f,
+
+    -0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f,  0.5f,
+     0.5f, -0.5f,  0.5f,
+    -0.5f, -0.5f,  0.5f,
+    -0.5f, -0.5f, -0.5f,
+
+    -0.5f,  0.5f, -0.5f,
+     0.5f,  0.5f, -0.5f,
+     0.5f,  0.5f,  0.5f,
+     0.5f,  0.5f,  0.5f,
+    -0.5f,  0.5f,  0.5f,
+    -0.5f,  0.5f, -0.5f
 };
+
+// CAMERA
+Camera camera;
+
+float delta_time = 0.0f;
+float last_frame = 0.0f;
 
 int
 main(void)
@@ -27,12 +72,14 @@ main(void)
     glfwMakeContextCurrent(window);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetFramebufferSizeCallback(window, resize_window_callback);
-    glfwSetKeyCallback(window, keyboard_callback);
+    glfwSetCursorPosCallback(window, cursor_position_callback);
 
     if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
             fprintf(stderr, "Failed to inititialize GLAD\n");
             exit(-1);
     }
+
+    glEnable(GL_DEPTH_TEST);
 
     glfwSwapInterval(1);
 
@@ -49,16 +96,36 @@ main(void)
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float) ,(void*) 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
+                          3 * sizeof(float),
+                          (void*) 0);
     glEnableVertexAttribArray(0);
 
     while(!glfwWindowShouldClose(window)) {
-        glClearColor(0.2f, 0.7f, 0.8f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        // TIMING
+        float current_frame = (float) glfwGetTime();
+        delta_time = current_frame - last_frame;
+        last_frame = current_frame;
 
-        shader.use_program();
+        glClearColor(0.2f, 0.7f, 0.8f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        process_input(window);
+
+        shader.use();
+
+        fprintf(stderr, "%f %f %f\n",
+                camera.position[0],
+                camera.position[1],
+                camera.position[2]);
+
+        glm::mat4 model = glm::mat4(1.0f);
+        shader.set_uniform((char*)"projection", camera.get_projection());
+        shader.set_uniform((char*)"view", camera.get_view());
+        shader.set_uniform((char*) "model", model);
+
         glBindVertexArray(vao);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -77,17 +144,35 @@ resize_window_callback(GLFWwindow* handle, int w, int h)
 internal void
 cursor_position_callback(GLFWwindow* handle, double x, double y)
 {
-    // TODO(fonsi): camera processing
+    if(camera.firstmouse) {
+        camera.lastx = (float)x;
+        camera.lasty = (float)y;
+        camera.firstmouse = false;
+    }
+    float xoff = (float) x - camera.lastx;
+    float yoff = (float) y - camera.lasty;
+    camera.lastx = (float) x;
+    camera.lasty = (float) y;
+    camera.process_cursor(xoff, yoff);
 }
 
 internal void
-keyboard_callback(GLFWwindow* handle, int key, int scancode, int action, int mods)
+process_input(GLFWwindow* handle)
 {
-    if(GLFW_PRESS == action) {
-        if(GLFW_KEY_ESCAPE == key) {
-            glfwSetWindowShouldClose(handle, 1);
-        }
-    }
+    if(glfwGetKey(handle, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(handle, 1);
+    if(glfwGetKey(handle, GLFW_KEY_W) == GLFW_PRESS)
+        camera.process_keyboard(Direction::FORWARD, delta_time);
+    if(glfwGetKey(handle, GLFW_KEY_S) == GLFW_PRESS)
+        camera.process_keyboard(Direction::BACKWARD, delta_time);
+    if(glfwGetKey(handle, GLFW_KEY_A) == GLFW_PRESS)
+        camera.process_keyboard(Direction::LEFT, delta_time);
+    if(glfwGetKey(handle, GLFW_KEY_D) == GLFW_PRESS)
+        camera.process_keyboard(Direction::RIGHT, delta_time);
+    if(glfwGetKey(handle, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+        camera.process_keyboard(Direction::DOWN, delta_time);
+    if(glfwGetKey(handle, GLFW_KEY_SPACE) == GLFW_PRESS)
+        camera.process_keyboard(Direction::UP, delta_time);
 }
 
 internal void

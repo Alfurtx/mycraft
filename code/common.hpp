@@ -46,4 +46,14 @@ typedef double   float64;
 
 typedef unsigned int uint;
 
+// NOTE(fonsi): move to different gfx.hpp file?
+enum Direction {
+    UP,
+    DOWN,
+    RIGHT,
+    LEFT,
+    FORWARD,
+    BACKWARD
+};
+
 #endif

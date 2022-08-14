@@ -60,7 +60,63 @@ Shader::compile_program(char* vertex_filepath, char* fragment_filepath)
 }
 
 void
-Shader::use_program()
+Shader::use()
 {
     glUseProgram(this->program_handle);
+}
+
+void
+Shader::set_uniform(char* name, glm::mat4 value)
+{
+    glUniformMatrix4fv(glGetUniformLocation(program_handle, name),
+                       1,
+                       GL_FALSE,
+                       glm::value_ptr(value));
+}
+
+void
+Shader::set_uniform(char* name, glm::mat3 value)
+{
+    glUniformMatrix3fv(glGetUniformLocation(program_handle, name),
+                       1,
+                       GL_FALSE,
+                       glm::value_ptr(value));
+}
+
+void
+Shader::set_uniform(char* name, glm::vec4 value)
+{
+    glUniform4fv(glGetUniformLocation(program_handle, name),
+                       1,
+                       glm::value_ptr(value));
+}
+
+void
+Shader::set_uniform(char* name, glm::vec3 value)
+{
+    glUniform3fv(glGetUniformLocation(program_handle, name),
+                       1,
+                       glm::value_ptr(value));
+}
+
+void
+Shader::set_uniform(char* name, glm::vec2 value)
+{
+    glUniform2fv(glGetUniformLocation(program_handle, name),
+                       1,
+                       glm::value_ptr(value));
+}
+
+void
+Shader::set_uniform(char* name, int value)
+{
+    glUniform1i(glGetUniformLocation(program_handle, name),
+                       value);
+}
+
+void
+Shader::set_uniform(char* name, uint value)
+{
+    glUniform1ui(glGetUniformLocation(program_handle, name),
+                       value);
 }
