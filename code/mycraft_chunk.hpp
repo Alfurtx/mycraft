@@ -12,13 +12,9 @@ enum CUBE_TYPE {
     SNOW,
 };
 
-local const int8 CHUNK_WIDTH = 8;
-
 struct Chunk {
     uint8* blocks;
     uint32 position;
-
-    uint32 vao, vbo, ibo;
 
     void init();
     void destroy();

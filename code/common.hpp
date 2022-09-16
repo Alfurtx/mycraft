@@ -66,5 +66,6 @@ enum Direction {
 
 global const float32 SCREEN_WIDTH = 1920;
 global const float32 SCREEN_HEIGHT = 1080;
+global const int8 CHUNK_WIDTH = 8;
 
 #endif
