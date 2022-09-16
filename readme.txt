@@ -4,6 +4,5 @@ Another Minecraft OpenGL clone, this time I wanted to make something portable in
 
 === TODO List ===
 
-[ ] Do an immediate-mode render algorithm ?
-[ ] Do an ECS ?
-[ ] Install GLFW, GLM and GLAD
+[x] Install GLFW, GLM and GLAD
+[ ] Do the basics, render a cube and be able to move around with a camera
