@@ -43,16 +43,28 @@ typedef uint32_t uint32;
 typedef uint64_t uint64;
 typedef float    float32;
 typedef double   float64;
+typedef int      bool32;
 
 typedef unsigned int uint;
 
+// IMPORTANT(fonsi): The Z+ coordinate is towards the camera when it spawns,
+// so FORWARDS IS Z- and BACKWARDS IS Z+
+/*
+ *    y+
+ *    |
+ *    | / z-
+ *    |/_____ x+
+ */
 enum Direction {
-    UP,
-    DOWN,
-    RIGHT,
-    LEFT,
-    FORWARD,
-    BACKWARD
+    UP,      // y+
+    DOWN,    // y-
+    RIGHT,   // x+
+    LEFT,    // x-
+    FORWARD, // z-
+    BACKWARD // z+
 };
+
+global const float32 SCREEN_WIDTH = 1920;
+global const float32 SCREEN_HEIGHT = 1080;
 
 #endif

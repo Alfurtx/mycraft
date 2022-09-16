@@ -1,61 +1,23 @@
 #include "common.hpp"
 #include "mycraft_camera.hpp"
 #include "mycraft_renderer.hpp"
+#include "vertex_data.hpp"
+#include "mycraft_chunk.hpp"
 
 internal void resize_window_callback(GLFWwindow* handle, int w, int h);
 internal void cursor_position_callback(GLFWwindow* handle, double x, double y);
 internal void process_input(GLFWwindow* handle);
 internal void mouse_callback(GLFWwindow* handle, int button, int action, int mods);
-
-float vertices[] = {
-    -0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f, -0.5f,
-     0.5f,  0.5f, -0.5f,
-     0.5f,  0.5f, -0.5f,
-    -0.5f,  0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f,
-
-    -0.5f, -0.5f,  0.5f,
-     0.5f, -0.5f,  0.5f,
-     0.5f,  0.5f,  0.5f,
-     0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f,  0.5f,
-    -0.5f, -0.5f,  0.5f,
-
-    -0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f,
-    -0.5f, -0.5f,  0.5f,
-    -0.5f,  0.5f,  0.5f,
-
-     0.5f,  0.5f,  0.5f,
-     0.5f,  0.5f, -0.5f,
-     0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f,  0.5f,
-     0.5f,  0.5f,  0.5f,
-
-    -0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f,  0.5f,
-     0.5f, -0.5f,  0.5f,
-    -0.5f, -0.5f,  0.5f,
-    -0.5f, -0.5f, -0.5f,
-
-    -0.5f,  0.5f, -0.5f,
-     0.5f,  0.5f, -0.5f,
-     0.5f,  0.5f,  0.5f,
-     0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f, -0.5f
-};
+internal void key_callback(GLFWwindow* handle, int key, int scancode, int action, int mods);
 
 // CAMERA
-Camera camera;
+global Camera camera;
 
-float delta_time = 0.0f;
-float last_frame = 0.0f;
+global float delta_time = 0.0f;
+global float last_frame = 0.0f;
+
+// RENDER FLAGS
+global bool32 wireframe_mode = 0;
 
 int
 main(void)
@@ -66,13 +28,15 @@ main(void)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_SAMPLES, 8);
 
-    GLFWwindow* window = glfwCreateWindow(1920, 1080, "MyCraft", 0, 0);
+    GLFWwindow* window = glfwCreateWindow((int)SCREEN_WIDTH, (int)SCREEN_HEIGHT, "MyCraft", 0, 0);
 
     glfwMakeContextCurrent(window);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetFramebufferSizeCallback(window, resize_window_callback);
     glfwSetCursorPosCallback(window, cursor_position_callback);
+    glfwSetKeyCallback(window, key_callback);
 
     if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
             fprintf(stderr, "Failed to inititialize GLAD\n");
@@ -80,6 +44,9 @@ main(void)
     }
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_FRAMEBUFFER_SRGB);
+    glEnable(GL_MULTISAMPLE);
 
     glfwSwapInterval(1);
 
@@ -96,12 +63,16 @@ main(void)
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
-                          3 * sizeof(float),
-                          (void*) 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) 0);
     glEnableVertexAttribArray(0);
 
+    Chunk chunk;
+    chunk.init();
+
     while(!glfwWindowShouldClose(window)) {
+
+        glPolygonMode(GL_FRONT_AND_BACK, wireframe_mode ? GL_LINE : GL_FILL);
+
         // TIMING
         float current_frame = (float) glfwGetTime();
         delta_time = current_frame - last_frame;
@@ -112,20 +83,17 @@ main(void)
 
         process_input(window);
 
-        shader.use();
-
-        fprintf(stderr, "%f %f %f\n",
-                camera.position[0],
-                camera.position[1],
-                camera.position[2]);
-
-        glm::mat4 model = glm::mat4(1.0f);
-        shader.set_uniform((char*)"projection", camera.get_projection());
-        shader.set_uniform((char*)"view", camera.get_view());
-        shader.set_uniform((char*) "model", model);
-
-        glBindVertexArray(vao);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        for(uint i = 0; i < 16; i++) {
+            for(uint j = 0; j < 16; j++) {
+                shader.use();
+                glm::mat4 model = glm::mat4(1.0f);
+                shader.set_uniform((char*)"projection", camera.get_projection());
+                shader.set_uniform((char*)"view", camera.get_view());
+                shader.set_uniform((char*) "model", glm::translate(model, glm::vec3(i, 0, j)));
+                glBindVertexArray(vao);
+                glDrawArrays(GL_TRIANGLES, 0, 36);
+            }
+        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -180,3 +148,15 @@ mouse_callback(GLFWwindow* handle, int button, int action, int mods)
 {
     // TODO(fonsi): do something with mouse buttons
 }
+
+internal void
+key_callback(GLFWwindow* handle, int key, int scancode, int action, int mods)
+{
+    if(key == GLFW_KEY_TAB && action == GLFW_PRESS)
+        wireframe_mode = !wireframe_mode;
+}
+
+
+
+
+

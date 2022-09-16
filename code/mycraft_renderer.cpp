@@ -32,7 +32,7 @@ Shader::compile_program(char* vertex_filepath, char* fragment_filepath)
     glGetShaderiv(vert, GL_COMPILE_STATUS, &success);
     if(!success) {
         glGetShaderInfoLog(vert, 512, NULL, infoLog);
-        fprintf(stderr, "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n%s\n", infoLog);
+        fprintf(stderr, "[ERROR][VERTEX COMPILATION]\n%s\n", infoLog);
     }
 
     frag = glCreateShader(GL_FRAGMENT_SHADER);
@@ -41,7 +41,7 @@ Shader::compile_program(char* vertex_filepath, char* fragment_filepath)
     glGetShaderiv(frag, GL_COMPILE_STATUS, &success);
     if(!success) {
         glGetShaderInfoLog(frag, 512, NULL, infoLog);
-        fprintf(stderr, "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n%s\n", infoLog);
+        fprintf(stderr, "[ERROR][FRAGMENT COMPILATION]\n%s\n", infoLog);
     }
 
     this->program_handle = glCreateProgram();
@@ -51,7 +51,7 @@ Shader::compile_program(char* vertex_filepath, char* fragment_filepath)
     glGetProgramiv(this->program_handle, GL_LINK_STATUS, &success);
     if(!success) {
         glGetProgramInfoLog(this->program_handle, 512, NULL, infoLog);
-        fprintf(stderr, "ERROR LINKING SHADER PROGRAM\n%s\n", infoLog);
+        fprintf(stderr, "[ERROR][PROGRAM LINKING]\n%s\n", infoLog);
     }
     glDeleteShader(vert);
     glDeleteShader(frag);

@@ -1,8 +1,5 @@
 #include "mycraft_camera.hpp"
 
-local const float WIDTH = 1920;
-local const float HEIGHT = 1080;
-
 internal void
 update_vectors(Camera& camera)
 {
@@ -20,15 +17,15 @@ Camera::Camera()
 {
     position = glm::vec3(0.0f, 0.0f, 0.0f);
     up = glm::vec3(0.0f, 1.0f, 0.0f);
-    front = glm::vec3(0.0f, 0.0f, -1.0f);
+    front = glm::vec3(0.0f, 0.0f, 1.0f);
     yaw = CAMERA_YAW;
     firstmouse = true;
     pitch = CAMERA_PITCH;
     speed = CAMERA_SPEED;
     sensitivity = CAMERA_SENSITIVITY;
     world_up = up;
-    lastx = WIDTH / 2.0f;
-    lasty = HEIGHT / 2.0f;
+    lastx = SCREEN_WIDTH / 2.0f;
+    lasty = SCREEN_HEIGHT / 2.0f;
     update_vectors(*this);
 }
 
@@ -42,7 +39,7 @@ glm::mat4
 Camera::get_projection()
 {
     return(glm::perspective(glm::radians(45.0f),
-                           WIDTH / HEIGHT,
+                           SCREEN_WIDTH / SCREEN_HEIGHT,
                            0.1f,
                            100.f));
 }
