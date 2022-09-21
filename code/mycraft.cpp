@@ -2,7 +2,6 @@
 #include "mycraft_camera.hpp"
 #include "mycraft_renderer.hpp"
 #include "vertex_data.hpp"
-#include "mycraft_chunk.hpp"
 
 internal void resize_window_callback(GLFWwindow* handle, int w, int h);
 internal void cursor_position_callback(GLFWwindow* handle, double x, double y);
