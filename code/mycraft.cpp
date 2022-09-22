@@ -50,7 +50,6 @@ main(void)
     glfwSwapInterval(1);
 
     // SHADER SOURCE AND COMPILATION
-    //
     Shader shader;
     shader.compile_program((char*)"w:\\mycraft\\shaders\\cube.vert",
                            (char*)"w:\\mycraft\\shaders\\cube.frag");
@@ -64,9 +63,6 @@ main(void)
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) 0);
     glEnableVertexAttribArray(0);
-
-    Chunk chunk;
-    chunk.init();
 
     while(!glfwWindowShouldClose(window)) {
 
@@ -154,8 +150,3 @@ key_callback(GLFWwindow* handle, int key, int scancode, int action, int mods)
     if(key == GLFW_KEY_TAB && action == GLFW_PRESS)
         wireframe_mode = !wireframe_mode;
 }
-
-
-
-
-

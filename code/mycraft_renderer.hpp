@@ -10,7 +10,7 @@ enum ShaderTarget {
 
 struct Shader {
     uint program_handle;
-    void compile_program(char* vertex_filepath, char* fragment_filepath);
+    void compile_program(char* vertex_filepath, char* fragment_filepath, char* geometry_filepath = 0);
     void use();
 
     void set_uniform(char* name, glm::mat4 value);

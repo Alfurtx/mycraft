@@ -1,7 +1,7 @@
 #include "mycraft_renderer.hpp"
 
 void
-Shader::compile_program(char* vertex_filepath, char* fragment_filepath)
+Shader::compile_program(char* vertex_filepath, char* fragment_filepath, char* geometry_filepath)
 {
     assert(vertex_filepath && fragment_filepath, (char*)"File path is null");
 
@@ -47,6 +47,28 @@ Shader::compile_program(char* vertex_filepath, char* fragment_filepath)
     this->program_handle = glCreateProgram();
     glAttachShader(this->program_handle, vert);
     glAttachShader(this->program_handle, frag);
+
+    uint geo;
+    char* geosrc;
+    if(geometry_filepath) {
+        fopen_s(&fp, fragment_filepath, "rb");
+        fseek(fp, 0, SEEK_END);
+        size = ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+        geosrc = (char*) _malloca((size + 1));
+        fread(geosrc, 1, size, fp);
+        fclose(fp);
+        geo = glCreateShader(GL_GEOMETRY_SHADER);
+        glShaderSource(geo, 1, &geosrc, 0);
+        glCompileShader(geo);
+        glGetShaderiv(frag, GL_COMPILE_STATUS, &success);
+        if(!success) {
+            glGetShaderInfoLog(frag, 512, NULL, infoLog);
+            fprintf(stderr, "[ERROR][FRAGMENT COMPILATION]\n%s\n", infoLog);
+        }
+        glAttachShader(this->program_handle, geo);
+    }
+
     glLinkProgram(this->program_handle);
     glGetProgramiv(this->program_handle, GL_LINK_STATUS, &success);
     if(!success) {
@@ -57,6 +79,10 @@ Shader::compile_program(char* vertex_filepath, char* fragment_filepath)
     glDeleteShader(frag);
     _freea(vertsrc);
     _freea(fragsrc);
+    if(geometry_filepath) {
+        glDeleteShader(geo);
+        _freea(geosrc);
+    }
 }
 
 void
