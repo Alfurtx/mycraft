@@ -1,6 +1,7 @@
 #include "common.hpp"
 #include "mycraft_camera.hpp"
 #include "mycraft_renderer.hpp"
+#include "mycraft_chunk.hpp"
 #include "vertex_data.hpp"
 
 internal void resize_window_callback(GLFWwindow* handle, int w, int h);
@@ -84,7 +85,7 @@ main(void)
                 glm::mat4 model = glm::mat4(1.0f);
                 shader.set_uniform((char*)"projection", camera.get_projection());
                 shader.set_uniform((char*)"view", camera.get_view());
-                shader.set_uniform((char*) "model", glm::translate(model, glm::vec3(i, 0, j)));
+                shader.set_uniform((char*)"model", glm::translate(model, glm::vec3(i, 0, j)));
                 glBindVertexArray(vao);
                 glDrawArrays(GL_TRIANGLES, 0, 36);
             }
