@@ -22,6 +22,8 @@ struct Chunk {
 struct World {
     Chunk chunks[WORLD_CHUNK_COUNT];
     bool has_world_changed;
+    glm::vec2 center_chunk;
+
     void init();
     void render();
 };

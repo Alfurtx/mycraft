@@ -2,8 +2,8 @@
 #include "mycraft.hpp"
 
 #define for_each_chunk(_i, _j) \
-    for(uint32 _i = 0; _i < WORLD_CHUNK_WIDTH; _i++) \
-        for(uint32 _j = 0; _j < WORLD_CHUNK_WIDTH; _j++) \
+    for(int32 _i = -(int32)(WORLD_CHUNK_WIDTH / 2); _i < (int32)WORLD_CHUNK_WIDTH / 2; _i++) \
+        for(int32 _j = -(int32)(WORLD_CHUNK_WIDTH / 2); _j < (int32)WORLD_CHUNK_WIDTH / 2; _j++) \
 
 #define for_each_block(_i, _j, _k) \
     for(uint32 _i = 0; _i < CHUNK_WIDTH; _i++) \
@@ -31,9 +31,18 @@ block_pos_to_coords(uint32 pos)
                     pos % CHUNK_WIDTH));
 }
 internal inline uint32
-chunk_coords_to_pos(uint32 i, uint32 j)
+chunk_coords_to_pos(int32 i, int32 j)
 {
-    return(i + j * WORLD_CHUNK_WIDTH);
+    int32 min = -WORLD_CHUNK_WIDTH / 2;
+    return((i - min) + (j - min) * WORLD_CHUNK_WIDTH);
+}
+internal inline uint32
+chunk_coords_to_pos(glm::vec2 v)
+{
+    int32 min = -WORLD_CHUNK_WIDTH / 2;
+    int32 i = (int32)v[0];
+    int32 j = (int32)v[1];
+    return((i - min) + (j - min) * WORLD_CHUNK_WIDTH);
 }
 internal inline bool
 is_pos_in_chunk(glm::vec3 pos)
@@ -44,6 +53,36 @@ is_pos_in_chunk(glm::vec3 pos)
            pos[0] >= 0 &&
            pos[1] >= 0 &&
            pos[2] >= 0);
+}
+internal inline bool
+is_chunk_in_world(glm::vec2 pos)
+{
+    int32 border = (int32)(WORLD_CHUNK_WIDTH / 2);
+    return(pos[0] >= -border &&
+           pos[0] <= border &&
+           pos[1] >= -border &&
+           pos[1] <= border);
+}
+internal inline uint32
+get_block_in_world(glm::vec3 pos)
+{
+    glm::vec2 chunk_pos;
+    chunk_pos = glm::vec2(pos[0] / CHUNK_WIDTH,
+                          pos[2] / CHUNK_WIDTH);
+    if(is_chunk_in_world(chunk_pos)) {
+        glm::vec2 chunk_world_pos = glm::vec2(chunk_pos[0] * CHUNK_WIDTH,
+                                              chunk_pos[1] * CHUNK_WIDTH);
+        glm::vec3 relative_block_pos = glm::vec3(pos[0] - chunk_world_pos[0],
+                                                 pos[1],
+                                                 pos[2] - chunk_world_pos[1]);
+        for(int32 i = 0; i < 3; i++ ) relative_block_pos[i] = fabs(relative_block_pos[i]);
+        Chunk& c = game_state.world.chunks[chunk_coords_to_pos(chunk_pos)];
+        uint32 barrpos = block_coords_to_pos(relative_block_pos);
+        uint32 b = c.blocks[barrpos];
+        return(b);
+    }
+
+    return(0);
 }
 
 void
@@ -68,8 +107,12 @@ Chunk::generate_mesh()
         if(block) {
             for(uint32 i = 0; i < 6; i++) {
                 glm::vec3 dirvec = bpos + DIRVECS[i];
+                glm::vec3 wdirvec = bpos * (float32)CHUNK_WIDTH + DIRVECS[i];
                 if(!is_pos_in_chunk(dirvec)) {
-                    chunkmesh.add_face((Direction) i, bpos);
+                    uint32 neighbor = get_block_in_world(wdirvec);
+                    if(neighbor != 0) {
+                        chunkmesh.add_face((Direction) i, bpos);
+                    }
                 } else {
                     uint32 neighbor = blocks[block_coords_to_pos(dirvec)];
                     if(neighbor == 0) {

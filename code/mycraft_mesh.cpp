@@ -81,17 +81,13 @@ Mesh::add_face(Direction dir, glm::vec3 block_position)
 {
     for(uint32 i = 0; i < 4; i++) {
         float32* vertex = &VERTICES[INDICES[dir * 6 + UNIQUE_INDICES[i]] * 3];
-        ((float32*) vertices.data)[vertices.index++] = vertex[0] + block_position[0];
-        ((float32*) vertices.data)[vertices.index++] = vertex[1] + block_position[1];
-        ((float32*) vertices.data)[vertices.index++] = vertex[2] + block_position[2];
-        // APPEND(float32, vertices, vertex[0] + block_position[0]);
-        // APPEND(float32, vertices, vertex[1] + block_position[1]);
-        // APPEND(float32, vertices, vertex[2] + block_position[2]);
+        APPEND(float32, vertices, vertex[0] + block_position[0]);
+        APPEND(float32, vertices, vertex[1] + block_position[1]);
+        APPEND(float32, vertices, vertex[2] + block_position[2]);
     }
 
     for(uint32 i = 0; i < 6; i++) {
-        ((uint32*) indices.data)[indices.index++] = vertex_count + INDICES[i];
-        // APPEND(uint32, indices, vertex_count + INDICES[i]);
+        APPEND(uint32, indices, vertex_count + INDICES[i]);
     }
 
     vertex_count += 4;

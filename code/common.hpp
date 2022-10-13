@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include <vector>
+#include <math.h>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
