@@ -15,8 +15,8 @@ arena_alloc(uint64 size)
 void
 arena_release(Arena* arena)
 {
-    assert(arena && arena.memory);
-    free(arena.memory);
+    assert(arena && arena->memory, 0);
+    free(arena->memory);
     free(arena);
     arena = 0;
 }
@@ -24,7 +24,7 @@ arena_release(Arena* arena)
 void*
 arena_push(Arena* arena, uint64 size)
 {
-    assert(arena->alloc_position + size <= arena->capacity);
+    assert(arena->alloc_position + size <= arena->capacity, 0);
     void* res = arena->memory + arena->alloc_position;
     arena->alloc_position += size;
     return(res);
@@ -33,7 +33,7 @@ arena_push(Arena* arena, uint64 size)
 void*
 arena_push_zero(Arena* arena, uint64 size)
 {
-    assert(arena->alloc_position + size <= arena->capacity);
+    assert(arena->alloc_position + size <= arena->capacity, 0);
     void* res = arena->memory + arena->alloc_position;
     arena->alloc_position += size;
     memset(res, 0, size);
@@ -43,7 +43,7 @@ arena_push_zero(Arena* arena, uint64 size)
 void
 arena_pop(Arena* arena, uint64 size)
 {
-    assert(arena && alloc_position >= size)
+    assert(arena && arena->alloc_position >= size, 0);
     arena->alloc_position -= size;
 }
 

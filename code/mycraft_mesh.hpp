@@ -3,11 +3,25 @@
 
 #include "common.hpp"
 
-struct Mesh {
-    float32* vertices;
-    uint32*  indices;
+typedef struct MeshDataBuffer {
+    void*  data;
+    uint32 count;
+    uint32 index;
+} MeshDataBuffer;
 
-    void add_face(Direction direction);
+struct Mesh {
+    MeshDataBuffer vertices;
+    MeshDataBuffer indices;
+    uint32 vertex_count;
+
+    uint32 vao;
+    uint32 vbo;
+    uint32 ibo;
+
+    void init();
+    void prepare();
+    void finalize();
+    void add_face(Direction dir, glm::vec3 block_position);
 };
 
 #endif

@@ -27,6 +27,7 @@ struct Camera {
     bool firstmouse;
 
     Camera();
+    void init();
     glm::mat4 get_view();
     glm::mat4 get_projection();
     void process_keyboard(Direction direction, float delta_time);

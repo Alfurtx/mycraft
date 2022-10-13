@@ -1,6 +1,14 @@
 #include "mycraft_renderer.hpp"
 
 void
+Renderer::init()
+{
+    world_shader.compile_program((char*)"w:\\mycraft\\shaders\\cube.vert",
+                                 (char*)"w:\\mycraft\\shaders\\cube.frag",
+                                 (char*) 0);
+}
+
+void
 Shader::compile_program(char* vertex_filepath, char* fragment_filepath, char* geometry_filepath)
 {
     assert(vertex_filepath && fragment_filepath, (char*)"File path is null");

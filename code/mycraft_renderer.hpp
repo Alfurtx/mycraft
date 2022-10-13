@@ -4,7 +4,7 @@
 #include "common.hpp"
 
 enum ShaderTarget {
-    CUBE = 0,
+    WORLD = 0,
     LAST
 };
 
@@ -23,7 +23,8 @@ struct Shader {
 };
 
 struct Renderer {
-    Shader shaders[ShaderTarget::LAST];
+    Shader world_shader;
+    void init();
 };
 
 #endif

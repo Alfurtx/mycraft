@@ -1,23 +1,19 @@
 #include "common.hpp"
-#include "mycraft_camera.hpp"
-#include "mycraft_renderer.hpp"
-#include "mycraft_chunk.hpp"
+#include "mycraft.hpp"
 #include "vertex_data.hpp"
 
+// Global Variables
+GameState game_state;
+global float delta_time = 0.0f;
+global float last_frame = 0.0f;
+global bool32 wireframe_mode = 0;
+
+// Internal function helper
 internal void resize_window_callback(GLFWwindow* handle, int w, int h);
 internal void cursor_position_callback(GLFWwindow* handle, double x, double y);
 internal void process_input(GLFWwindow* handle);
 internal void mouse_callback(GLFWwindow* handle, int button, int action, int mods);
 internal void key_callback(GLFWwindow* handle, int key, int scancode, int action, int mods);
-
-// CAMERA
-global Camera camera;
-
-global float delta_time = 0.0f;
-global float last_frame = 0.0f;
-
-// RENDER FLAGS
-global bool32 wireframe_mode = 0;
 
 int
 main(void)
@@ -47,23 +43,27 @@ main(void)
     glEnable(GL_CULL_FACE);
     glEnable(GL_FRAMEBUFFER_SRGB);
     glEnable(GL_MULTISAMPLE);
+    glCullFace(GL_FRONT);
 
     glfwSwapInterval(1);
 
     // SHADER SOURCE AND COMPILATION
-    Shader shader;
-    shader.compile_program((char*)"w:\\mycraft\\shaders\\cube.vert",
-                           (char*)"w:\\mycraft\\shaders\\cube.frag");
+    // Shader shader;
+    // shader.compile_program((char*)"w:\\mycraft\\shaders\\cube.vert",
+    //                        (char*)"w:\\mycraft\\shaders\\cube.frag",
+    //                        (char*) 0);
 
     // VERTEX THING
-    uint vbo, vao;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) 0);
-    glEnableVertexAttribArray(0);
+    // uint vbo, vao;
+    // glGenVertexArrays(1, &vao);
+    // glBindVertexArray(vao);
+    // glGenBuffers(1, &vbo);
+    // glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(cube_raw_vertices), cube_raw_vertices, GL_STATIC_DRAW);
+    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) 0);
+    // glEnableVertexAttribArray(0);
+
+    gamestate_init(game_state);
 
     while(!glfwWindowShouldClose(window)) {
 
@@ -79,17 +79,19 @@ main(void)
 
         process_input(window);
 
-        for(uint i = 0; i < 16; i++) {
-            for(uint j = 0; j < 16; j++) {
-                shader.use();
-                glm::mat4 model = glm::mat4(1.0f);
-                shader.set_uniform((char*)"projection", camera.get_projection());
-                shader.set_uniform((char*)"view", camera.get_view());
-                shader.set_uniform((char*)"model", glm::translate(model, glm::vec3(i, 0, j)));
-                glBindVertexArray(vao);
-                glDrawArrays(GL_TRIANGLES, 0, 36);
-            }
-        }
+        // for(uint i = 0; i < 16; i++) {
+        //     for(uint j = 0; j < 16; j++) {
+        //         shader.use();
+        //         glm::mat4 model = glm::mat4(1.0f);
+        //         shader.set_uniform((char*)"projection", camera.get_projection());
+        //         shader.set_uniform((char*)"view", camera.get_view());
+        //         shader.set_uniform((char*)"model", glm::translate(model, glm::vec3(i, 0, j)));
+        //         glBindVertexArray(vao);
+        //         glDrawArrays(GL_TRIANGLES, 0, 36);
+        //     }
+        // }
+
+        game_update_and_render(game_state);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -108,16 +110,16 @@ resize_window_callback(GLFWwindow* handle, int w, int h)
 internal void
 cursor_position_callback(GLFWwindow* handle, double x, double y)
 {
-    if(camera.firstmouse) {
-        camera.lastx = (float)x;
-        camera.lasty = (float)y;
-        camera.firstmouse = false;
+    if(game_state.camera.firstmouse) {
+        game_state.camera.lastx = (float)x;
+        game_state.camera.lasty = (float)y;
+        game_state.camera.firstmouse = false;
     }
-    float xoff = (float) x - camera.lastx;
-    float yoff = (float) y - camera.lasty;
-    camera.lastx = (float) x;
-    camera.lasty = (float) y;
-    camera.process_cursor(xoff, yoff);
+    float xoff = (float) x - game_state.camera.lastx;
+    float yoff = (float) y - game_state.camera.lasty;
+    game_state.camera.lastx = (float) x;
+    game_state.camera.lasty = (float) y;
+    game_state.camera.process_cursor(xoff, yoff);
 }
 
 internal void
@@ -126,17 +128,17 @@ process_input(GLFWwindow* handle)
     if(glfwGetKey(handle, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(handle, 1);
     if(glfwGetKey(handle, GLFW_KEY_W) == GLFW_PRESS)
-        camera.process_keyboard(Direction::FORWARD, delta_time);
+        game_state.camera.process_keyboard(Direction::FORWARD, delta_time);
     if(glfwGetKey(handle, GLFW_KEY_S) == GLFW_PRESS)
-        camera.process_keyboard(Direction::BACKWARD, delta_time);
+        game_state.camera.process_keyboard(Direction::BACKWARD, delta_time);
     if(glfwGetKey(handle, GLFW_KEY_A) == GLFW_PRESS)
-        camera.process_keyboard(Direction::LEFT, delta_time);
+        game_state.camera.process_keyboard(Direction::LEFT, delta_time);
     if(glfwGetKey(handle, GLFW_KEY_D) == GLFW_PRESS)
-        camera.process_keyboard(Direction::RIGHT, delta_time);
+        game_state.camera.process_keyboard(Direction::RIGHT, delta_time);
     if(glfwGetKey(handle, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-        camera.process_keyboard(Direction::DOWN, delta_time);
+        game_state.camera.process_keyboard(Direction::DOWN, delta_time);
     if(glfwGetKey(handle, GLFW_KEY_SPACE) == GLFW_PRESS)
-        camera.process_keyboard(Direction::UP, delta_time);
+        game_state.camera.process_keyboard(Direction::UP, delta_time);
 }
 
 internal void
@@ -150,4 +152,18 @@ key_callback(GLFWwindow* handle, int key, int scancode, int action, int mods)
 {
     if(key == GLFW_KEY_TAB && action == GLFW_PRESS)
         wireframe_mode = !wireframe_mode;
+}
+
+void
+gamestate_init(GameState& game_state)
+{
+    game_state.renderer.init();
+    game_state.camera.init();
+    game_state.world.init();
+}
+
+void
+game_update_and_render(GameState& game_state)
+{
+    game_state.world.render();
 }

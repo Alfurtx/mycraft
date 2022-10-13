@@ -2,35 +2,28 @@
 #define MYCRAFT_CHUNK_HPP
 
 #include "common.hpp"
+#include "mycraft_mesh.hpp"
 
+// CHUNK stuff
 // NOTE(fonsi): chunks are 32x32x32 blocks in size
-#define CHUNK_BLOCK_COUNT (CHUNK_WIDTH * CHUNK_WIDTH * CHUNK_WIDTH)
-
-enum BLOCK_TYPE {
-    AIR = 0,
-    GRASS,
-    STONE,
-    SAND,
-    SNOW
-};
 
 struct Chunk {
     uint8 blocks[CHUNK_BLOCK_COUNT];
-    glm::vec2 chunk_position;
+    Mesh  chunkmesh;
     glm::vec2 world_position;
+    glm::vec2 chunk_position;
 
-    void init(glm::vec2 chunk_pos);
-    void gen();
+    void init(glm::vec2 cpos);
+    void generate_mesh();
+    void render();
 };
 
-#define WORLD_CHUNK_WIDTH 9
-#define WORLD_CHUNK_COUNT (WORLD_CHUNK_WIDTH * WORLD_CHUNK_WIDTH)
-
+// WORLD stuff
 struct World {
     Chunk chunks[WORLD_CHUNK_COUNT];
-    void gen();
+    bool has_world_changed;
+    void init();
+    void render();
 };
-
-extern World world;
 
 #endif

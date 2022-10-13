@@ -15,9 +15,26 @@ update_vectors(Camera& camera)
 
 Camera::Camera()
 {
+    position = glm::vec3(0.0f, 3.0f, 0.0f);
+    up = glm::vec3(0.0f, 1.0f, 0.0f);
+    front = glm::vec3(0.0f, 0.0f, -1.0f);
+    yaw = CAMERA_YAW;
+    firstmouse = true;
+    pitch = CAMERA_PITCH;
+    speed = CAMERA_SPEED;
+    sensitivity = CAMERA_SENSITIVITY;
+    world_up = up;
+    lastx = SCREEN_WIDTH / 2.0f;
+    lasty = SCREEN_HEIGHT / 2.0f;
+    update_vectors(*this);
+}
+
+void
+Camera::init()
+{
     position = glm::vec3(0.0f, 0.0f, 0.0f);
     up = glm::vec3(0.0f, 1.0f, 0.0f);
-    front = glm::vec3(0.0f, 0.0f, 1.0f);
+    front = glm::vec3(0.0f, 0.0f, -1.0f);
     yaw = CAMERA_YAW;
     firstmouse = true;
     pitch = CAMERA_PITCH;
