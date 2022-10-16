@@ -44,6 +44,7 @@ Camera::init()
     lastx = SCREEN_WIDTH / 2.0f;
     lasty = SCREEN_HEIGHT / 2.0f;
     update_vectors(*this);
+    speedup = false;
 }
 
 glm::mat4
@@ -58,13 +59,14 @@ Camera::get_projection()
     return(glm::perspective(glm::radians(45.0f),
                            SCREEN_WIDTH / SCREEN_HEIGHT,
                            0.1f,
-                           100.f));
+                           1000.f));
 }
 
 void
 Camera::process_keyboard(Direction direction, float delta_time)
 {
-    float velocity = speed * delta_time;
+    float32 s = speedup ? speed * 10 : speed;
+    float velocity = s * delta_time;
     if (direction == Direction::FORWARD)
         position += front * velocity;
     if (direction == Direction::BACKWARD)

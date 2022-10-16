@@ -20,6 +20,7 @@ Shader::compile_program(char* vertex_filepath, char* fragment_filepath, char* ge
     fseek(fp, 0, SEEK_SET);
     char* vertsrc = (char*) _malloca((size + 1));
     fread(vertsrc, 1, size, fp);
+    vertsrc[size] = '\0';
     fclose(fp);
 
     fopen_s(&fp, fragment_filepath, "rb");
@@ -28,6 +29,7 @@ Shader::compile_program(char* vertex_filepath, char* fragment_filepath, char* ge
     fseek(fp, 0, SEEK_SET);
     char* fragsrc = (char*) _malloca((size + 1));
     fread(fragsrc, 1, size, fp);
+    fragsrc[size] = '\0';
     fclose(fp);
 
     uint vert, frag;
@@ -65,6 +67,7 @@ Shader::compile_program(char* vertex_filepath, char* fragment_filepath, char* ge
         fseek(fp, 0, SEEK_SET);
         geosrc = (char*) _malloca((size + 1));
         fread(geosrc, 1, size, fp);
+        geosrc[size] = '\0';
         fclose(fp);
         geo = glCreateShader(GL_GEOMETRY_SHADER);
         glShaderSource(geo, 1, &geosrc, 0);

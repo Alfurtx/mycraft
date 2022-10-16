@@ -40,28 +40,12 @@ main(void)
     }
 
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
+    // glEnable(GL_CULL_FACE);
     glEnable(GL_FRAMEBUFFER_SRGB);
     glEnable(GL_MULTISAMPLE);
-    glCullFace(GL_FRONT);
+    // glCullFace(GL_FRONT);
 
     glfwSwapInterval(1);
-
-    // SHADER SOURCE AND COMPILATION
-    // Shader shader;
-    // shader.compile_program((char*)"w:\\mycraft\\shaders\\cube.vert",
-    //                        (char*)"w:\\mycraft\\shaders\\cube.frag",
-    //                        (char*) 0);
-
-    // VERTEX THING
-    // uint vbo, vao;
-    // glGenVertexArrays(1, &vao);
-    // glBindVertexArray(vao);
-    // glGenBuffers(1, &vbo);
-    // glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    // glBufferData(GL_ARRAY_BUFFER, sizeof(cube_raw_vertices), cube_raw_vertices, GL_STATIC_DRAW);
-    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) 0);
-    // glEnableVertexAttribArray(0);
 
     gamestate_init(game_state);
 
@@ -78,18 +62,6 @@ main(void)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         process_input(window);
-
-        // for(uint i = 0; i < 16; i++) {
-        //     for(uint j = 0; j < 16; j++) {
-        //         shader.use();
-        //         glm::mat4 model = glm::mat4(1.0f);
-        //         shader.set_uniform((char*)"projection", camera.get_projection());
-        //         shader.set_uniform((char*)"view", camera.get_view());
-        //         shader.set_uniform((char*)"model", glm::translate(model, glm::vec3(i, 0, j)));
-        //         glBindVertexArray(vao);
-        //         glDrawArrays(GL_TRIANGLES, 0, 36);
-        //     }
-        // }
 
         game_update_and_render(game_state);
 
@@ -152,6 +124,8 @@ key_callback(GLFWwindow* handle, int key, int scancode, int action, int mods)
 {
     if(key == GLFW_KEY_TAB && action == GLFW_PRESS)
         wireframe_mode = !wireframe_mode;
+    if(key == GLFW_KEY_LEFT_SHIFT && action == GLFW_PRESS)
+        game_state.camera.speedup = !game_state.camera.speedup;
 }
 
 void

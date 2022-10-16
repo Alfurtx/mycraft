@@ -1,6 +1,6 @@
 #include "mycraft_mesh.hpp"
 
-#define VERTICES_BUFFER_SIZE (32 * 32 * 32 * 8 * (3 + 2 + 3) * sizeof(float32))
+#define VERTICES_BUFFER_SIZE (32 * 32 * 32 * 8 * (3 + 3) * sizeof(float32))
 #define INDICES_BUFFER_SIZE (32 * 32 * 32 * (12 * 3) * sizeof(float32))
 #define APPEND(_type, _buffer, _data)               \
     (((_type*) _buffer.data)[_buffer.index++] = _data)
@@ -72,8 +72,10 @@ Mesh::finalize()
     glBufferData(GL_ARRAY_BUFFER, vertices.count * sizeof(float32), vertices.data, GL_STATIC_DRAW);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.count * sizeof(uint32), indices.data, GL_STATIC_DRAW);
     glBindVertexArray(vao);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float32), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float32), (void*)0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float32), (void*)(3 * sizeof(float32)));
+    glEnableVertexAttribArray(1);
 }
 
 void
@@ -81,9 +83,16 @@ Mesh::add_face(Direction dir, glm::vec3 block_position)
 {
     for(uint32 i = 0; i < 4; i++) {
         float32* vertex = &VERTICES[INDICES[dir * 6 + UNIQUE_INDICES[i]] * 3];
+
+        // POSITION
         APPEND(float32, vertices, vertex[0] + block_position[0]);
         APPEND(float32, vertices, vertex[1] + block_position[1]);
         APPEND(float32, vertices, vertex[2] + block_position[2]);
+
+        // COLOR
+        APPEND(float32, vertices, block_position[0] / CHUNK_WIDTH);
+        APPEND(float32, vertices, block_position[1] / CHUNK_WIDTH);
+        APPEND(float32, vertices, block_position[2] / CHUNK_WIDTH);
     }
 
     for(uint32 i = 0; i < 6; i++) {

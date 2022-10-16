@@ -72,19 +72,19 @@ enum Direction {
 };
 
 static glm::vec3 DIRVECS[] = {
-    glm::vec3(0 , 0, -1),
-    glm::vec3(0 , 0, 1),
-    glm::vec3(1 , 0, 0),
-    glm::vec3(-1, 0, 0),
-    glm::vec3(0 , 1, 0),
-    glm::vec3(0 ,-1, 0),
+    glm::vec3(0 , 0, -1), // z-
+    glm::vec3(0 , 0, 1),  // z+
+    glm::vec3(1 , 0, 0),  // x+
+    glm::vec3(-1, 0, 0),  // x-
+    glm::vec3(0 , 1, 0),  // y+
+    glm::vec3(0 ,-1, 0),  // y-
 };
 
 global const float32 SCREEN_WIDTH = 1920;
 global const float32 SCREEN_HEIGHT = 1080;
 global const int32 CHUNK_WIDTH = 32;
 global const int32 CHUNK_BLOCK_COUNT = CHUNK_WIDTH * CHUNK_WIDTH * CHUNK_WIDTH;
-global const int32 WORLD_CHUNK_WIDTH = 9;
+global const int32 WORLD_CHUNK_WIDTH = 9; // NOTE(fonsi): This should always be indivisible by 2
 global const int32 WORLD_CHUNK_COUNT = WORLD_CHUNK_WIDTH * WORLD_CHUNK_WIDTH;
 
 enum BLOCK_TYPE {

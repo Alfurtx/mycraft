@@ -25,6 +25,7 @@ struct Camera {
     float lasty;
 
     bool firstmouse;
+    bool speedup;
 
     Camera();
     void init();
