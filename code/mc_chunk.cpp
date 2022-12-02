@@ -1,6 +1,13 @@
 #include "mc_chunk.hpp"
 #include "mycraft.hpp"
 
+// NOTE(fonsi): min and max are inclusive
+INTERNAL bool
+in_range(float val, float min, float max)
+{
+    return(val >= min && val < max);
+}
+
 INTERNAL glm::vec3
 chunk_get_block_coords_from_arrpos(int32 position)
 {
@@ -38,6 +45,8 @@ chunk_check_block_exists(Chunk* chunk, glm::vec3 coords_position)
     int32 arrpos = chunk_get_block_arrpos_from_coords(coords_position);
     return(chunk->blocks[arrpos] != 0);
 }
+
+INTERNAL bool world_check_block_exists(World* world, glm::vec3 position);
 
 void
 chunk_init(Chunk* chunk, glm::vec2 chunk_position)
@@ -105,7 +114,11 @@ chunk_generate_mesh(Chunk* chunk)
                 glm::vec3 dirvec = DIRVECS[face_direction];
                 glm::vec3 npos = bpos + dirvec;
 
-                if(!chunk_check_block_exists(chunk, npos))
+                glm::vec3 wbpos = bpos + glm::vec3(chunk->world_position.x, 0, chunk->world_position.y);
+                glm::vec3 wnpos = wbpos + dirvec;
+
+                // if(!chunk_check_block_exists(chunk, npos))
+                if(!world_check_block_exists(&game_state.world, wnpos))
                 {
                     emit_face(chunk,
                               chunk->mesh.vertices,
@@ -200,6 +213,30 @@ world_chunk_arrpos_from_coords(World* world, glm::vec2 coords)
     int32 xmin = (int32)world->origin_chunk.x;
     int32 ymin = (int32)world->origin_chunk.y;
     return((uint32) ((coords.y - ymin) * WORLD_CHUNK_WIDTH + (coords.x - xmin)));
+}
+
+INTERNAL bool
+world_check_block_exists(World* world, glm::vec3 position)
+{
+    // check block is IN the world
+    glm::vec2 last_chunk_pos = world_chunk_coords_from_arrpos(world, WORLD_CHUNK_COUNT-1);
+    if( !in_range(position.x, world->origin_chunk.x * CHUNK_WIDTH, last_chunk_pos.x * CHUNK_WIDTH + CHUNK_WIDTH) ||
+        !in_range(position.z, world->origin_chunk.y * CHUNK_WIDTH, last_chunk_pos.y * CHUNK_WIDTH + CHUNK_WIDTH) ||
+        !in_range(position.y, 0, CHUNK_WIDTH))
+    {
+        return(false);
+    }
+
+    // get the chunk it belongs to
+    glm::vec2 chunk_coords = glm::vec2(floor(position.x / CHUNK_WIDTH), floor(position.z / CHUNK_WIDTH));
+    glm::vec2 chunk_wcoords = glm::vec2(chunk_coords.x * CHUNK_WIDTH, chunk_coords.y * CHUNK_WIDTH);
+    glm::vec3 block_local_pos = glm::vec3(position.x - chunk_wcoords.x, position.y, position.z - chunk_wcoords.y);
+    uint32 carrpos = world_chunk_arrpos_from_coords(world, chunk_coords);
+    Chunk* chunk = &world->chunks[carrpos];
+
+    // get the block
+    // uint32 block = chunk_get_block_arrpos_from_coords(block_local_pos);
+    return(chunk_check_block_exists(chunk, block_local_pos));
 }
 
 void
