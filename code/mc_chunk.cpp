@@ -1,6 +1,21 @@
 #include "mc_chunk.hpp"
 #include "mycraft.hpp"
 
+inline glm::vec3
+get_block_from_camera_position(glm::vec3 camera_position)
+{
+    glm::vec3 result;
+    result.x = camera_position.x;
+
+    if(camera_position.y < 0) result.y = 0;
+    else if(camera_position.y > CHUNK_WIDTH) result.y = CHUNK_WIDTH;
+    else result.y = camera_position.y;
+
+    result.z = camera_position.z;
+
+    return(result);
+}
+
 // NOTE(fonsi): min and max are inclusive
 INTERNAL bool
 in_range(float val, float min, float max)
@@ -188,6 +203,12 @@ chunk_render(Chunk* chunk)
     glDrawElements(GL_TRIANGLES, (uint32)chunk->mesh.indices.size(), GL_UNSIGNED_INT, 0);
 }
 
+void
+chunk_set_position(Chunk* chunk, glm::vec2 new_position)
+{
+    chunk->chunk_position = new_position;
+    chunk->world_position = { new_position.x * CHUNK_WIDTH, new_position.y * CHUNK_WIDTH };
+}
 
 
 
@@ -245,6 +266,9 @@ world_init(World* world)
     world->center_chunk = glm::vec2(0);
     world->origin_chunk = glm::vec2(-1, -1);
 
+    // test std::vector for chunks
+    world->chunks.resize(WORLD_CHUNK_COUNT);
+
     for(uint32 i = 0; i < WORLD_CHUNK_COUNT; i++)
     {
         glm::vec2 cpos = world_chunk_coords_from_arrpos(world, i);
@@ -253,8 +277,54 @@ world_init(World* world)
 }
 
 void
-world_set_center(World* world)
+world_set_center(World* world, glm::vec3 camera_position)
 {
+    // return;
+    glm::vec3 player_position = get_block_from_camera_position(camera_position);
+
+    // check if player is in center chunk
+    float minx = world->center_chunk.x * CHUNK_WIDTH;
+    float miny = world->center_chunk.y * CHUNK_WIDTH;
+    float maxx = world->center_chunk.x * CHUNK_WIDTH + CHUNK_WIDTH;
+    float maxy = world->center_chunk.y * CHUNK_WIDTH + CHUNK_WIDTH;
+
+    if(in_range(player_position.x, minx, maxx) &&
+       in_range(player_position.z, miny, maxy))
+        return;
+
+    // change center chunk
+    glm::vec2 chunk_coords = glm::vec2(floor(player_position.x / CHUNK_WIDTH),
+                                       floor(player_position.z / CHUNK_WIDTH));
+    world->center_chunk = chunk_coords;
+
+    // change origin chunk
+    glm::vec2 offset = glm::vec2(trunc(WORLD_CHUNK_WIDTH / 2),
+                                 trunc(WORLD_CHUNK_WIDTH / 2));
+    world->origin_chunk = world->center_chunk - offset;
+
+    // flag for remesh and reset positions for chunks
+
+    std::vector<Chunk> old(world->chunks);
+
+    world->chunks.clear();
+    world->chunks.resize(WORLD_CHUNK_COUNT);
+
+    for(uint32 i = 0; i < WORLD_CHUNK_COUNT; i++)
+    {
+        glm::vec2 cpos = world_chunk_coords_from_arrpos(world, i);
+        int32 reinit = -1;
+        for(uint32 i = 0; i < WORLD_CHUNK_COUNT; i++)
+            if(old[i].chunk_position == cpos) {
+                reinit = i;
+                break;
+            }
+        if(reinit == -1)
+            chunk_init(&world->chunks[i], cpos);
+        else {
+            world->chunks.at(i) = old[reinit];
+            world->chunks[i].remesh = true;
+        }
+    }
 }
 
 void

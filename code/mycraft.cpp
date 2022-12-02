@@ -140,5 +140,6 @@ gamestate_init(GameState& game_state)
 void
 gamestate_render(GameState& game_state)
 {
+    world_set_center(&game_state.world, game_state.camera.position);
     world_render(&game_state.world);
 }
