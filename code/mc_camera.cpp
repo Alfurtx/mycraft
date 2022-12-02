@@ -1,6 +1,6 @@
-#include "mycraft_camera.hpp"
+#include "mc_camera.hpp"
 
-internal void
+INTERNAL void
 update_vectors(Camera& camera)
 {
     glm::vec3 front;
@@ -11,22 +11,6 @@ update_vectors(Camera& camera)
     // also re-calculate the Right and Up vector
     camera.right = glm::normalize(glm::cross(camera.front, camera.world_up));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
     camera.up = glm::normalize(glm::cross(camera.right, camera.front));
-}
-
-Camera::Camera()
-{
-    position = glm::vec3(0.0f, 3.0f, 0.0f);
-    up = glm::vec3(0.0f, 1.0f, 0.0f);
-    front = glm::vec3(0.0f, 0.0f, -1.0f);
-    yaw = CAMERA_YAW;
-    firstmouse = true;
-    pitch = CAMERA_PITCH;
-    speed = CAMERA_SPEED;
-    sensitivity = CAMERA_SENSITIVITY;
-    world_up = up;
-    lastx = SCREEN_WIDTH / 2.0f;
-    lasty = SCREEN_HEIGHT / 2.0f;
-    update_vectors(*this);
 }
 
 void

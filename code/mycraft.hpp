@@ -2,9 +2,9 @@
 #define MYCRAFT_HPP
 
 #include "common.hpp"
-#include "mycraft_chunk.hpp"
-#include "mycraft_camera.hpp"
-#include "mycraft_renderer.hpp"
+#include "mc_chunk.hpp"
+#include "mc_camera.hpp"
+#include "mc_renderer.hpp"
 
 typedef struct GameState
 {
@@ -17,6 +17,6 @@ typedef struct GameState
 extern GameState game_state;
 
 void gamestate_init(GameState& game_state);
-void game_update_and_render(GameState& game_state);
+void gamestate_render(GameState& game_state);
 
 #endif

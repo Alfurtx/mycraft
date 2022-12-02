@@ -1,4 +1,4 @@
-#include "mycraft_renderer.hpp"
+#include "mc_renderer.hpp"
 
 void
 Renderer::init()

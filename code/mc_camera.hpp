@@ -27,7 +27,6 @@ struct Camera {
     bool firstmouse;
     bool speedup;
 
-    Camera();
     void init();
     glm::mat4 get_view();
     glm::mat4 get_projection();

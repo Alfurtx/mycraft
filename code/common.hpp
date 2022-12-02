@@ -5,7 +5,8 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include <vector>
-#include <math.h>
+#include <cmath>
+#include <string.h>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -35,10 +36,15 @@ _assert(const char* expr, const char* filename, const int line, char* message)
 #define global static
 #define local static
 
+#define INTERNAL internal inline
+
 #define kilobytes(num) ((number)*1024ull)
 #define megabytes(num) (kilobytes(number)*1024ull)
 #define gigabytes(num) (megabytes(number)*1024ull)
 #define terabytes(num) (gigabytes(number)*1024ull)
+
+#define NS_PER_SECOND (1000000000)
+#define NS_PER_MS (1000000)
 
 typedef int8_t   int8;
 typedef int16_t  int16;
@@ -63,28 +69,30 @@ typedef unsigned int uint;
  *    |/_____ x+
  */
 enum Direction {
-    FORWARD = 0, // z-
-    BACKWARD,    // z+
-    RIGHT,       // x+
-    LEFT,        // x-
-    UP,          // y+
-    DOWN,        // y-
+    BACKWARD = 0, // z+
+    FORWARD,      // z-
+    RIGHT,        // x+
+    LEFT,         // x-
+    UP,           // y+
+    DOWN,         // y-
 };
 
 static glm::vec3 DIRVECS[] = {
-    glm::vec3(0 , 0, -1), // z-
-    glm::vec3(0 , 0, 1),  // z+
-    glm::vec3(1 , 0, 0),  // x+
-    glm::vec3(-1, 0, 0),  // x-
-    glm::vec3(0 , 1, 0),  // y+
-    glm::vec3(0 ,-1, 0),  // y-
+    glm::vec3(0 , 0,  1),  // z+
+    glm::vec3(0 , 0, -1),  // z-
+    glm::vec3(1 , 0,  0),  // x+
+    glm::vec3(-1, 0,  0),  // x-
+    glm::vec3(0 , 1,  0),  // y+
+    glm::vec3(0 ,-1,  0),  // y-
 };
 
 global const float32 SCREEN_WIDTH = 1920;
 global const float32 SCREEN_HEIGHT = 1080;
-global const int32 CHUNK_WIDTH = 32;
+global const int32 CHUNK_WIDTH = 8;
 global const int32 CHUNK_BLOCK_COUNT = CHUNK_WIDTH * CHUNK_WIDTH * CHUNK_WIDTH;
-global const int32 WORLD_CHUNK_WIDTH = 9; // NOTE(fonsi): This should always be indivisible by 2
+
+// NOTE(fonsi): This should always be indivisible by 2
+global const int32 WORLD_CHUNK_WIDTH = 3;
 global const int32 WORLD_CHUNK_COUNT = WORLD_CHUNK_WIDTH * WORLD_CHUNK_WIDTH;
 
 enum BLOCK_TYPE {

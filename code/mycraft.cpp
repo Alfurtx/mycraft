@@ -7,6 +7,7 @@ GameState game_state;
 global float delta_time = 0.0f;
 global float last_frame = 0.0f;
 global bool32 wireframe_mode = 0;
+global uint64 tick_remainder = 0;
 
 // Internal function helper
 internal void resize_window_callback(GLFWwindow* handle, int w, int h);
@@ -40,9 +41,9 @@ main(void)
     }
 
     glEnable(GL_DEPTH_TEST);
-    // glEnable(GL_CULL_FACE);
     glEnable(GL_FRAMEBUFFER_SRGB);
     glEnable(GL_MULTISAMPLE);
+    glEnable(GL_CULL_FACE);
     // glCullFace(GL_FRONT);
 
     glfwSwapInterval(1);
@@ -63,7 +64,7 @@ main(void)
 
         process_input(window);
 
-        game_update_and_render(game_state);
+        gamestate_render(game_state);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -133,11 +134,11 @@ gamestate_init(GameState& game_state)
 {
     game_state.renderer.init();
     game_state.camera.init();
-    game_state.world.init();
+    world_init(&game_state.world);
 }
 
 void
-game_update_and_render(GameState& game_state)
+gamestate_render(GameState& game_state)
 {
-    game_state.world.render();
+    world_render(&game_state.world);
 }
