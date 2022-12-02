@@ -94,15 +94,22 @@ global const int32 CHUNK_WIDTH = 8;
 global const int32 CHUNK_BLOCK_COUNT = CHUNK_WIDTH * CHUNK_WIDTH * CHUNK_WIDTH;
 
 // NOTE(fonsi): This should always be indivisible by 2
-global const int32 WORLD_CHUNK_WIDTH = 3;
+global const int32 WORLD_CHUNK_WIDTH = 9;
 global const int32 WORLD_CHUNK_COUNT = WORLD_CHUNK_WIDTH * WORLD_CHUNK_WIDTH;
 
 enum BLOCK_TYPE {
     AIR = 0,
     GRASS,
+    DIRT,
+    WATER,
+    IRON,
     STONE,
+    LOG,
     SAND,
-    SNOW
+    GLASS,
+    WOOD,
+    COBBLESTONE,
+    COUNT,
 };
 
 #endif

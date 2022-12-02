@@ -2,6 +2,7 @@
 #define MYCRAFT_CHUNK_HPP
 
 #include "common.hpp"
+#include "mc_blocks.hpp"
 
 /*  3D CUBE
  *  1-------2

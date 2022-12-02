@@ -73,7 +73,7 @@ chunk_init(Chunk* chunk, glm::vec2 chunk_position)
     for(int32 pos = 0; pos < CHUNK_BLOCK_COUNT; pos++)
     {
         int32 yposition = (pos / CHUNK_WIDTH) % CHUNK_WIDTH;
-        if(yposition == 1) chunk->blocks[pos] = BLOCK_TYPE::GRASS;
+        if(in_range(yposition, 1, 4)) chunk->blocks[pos] = BLOCK_TYPE::LOG;
     }
 
     // initialize mesh data
@@ -94,7 +94,8 @@ emit_face(Chunk* chunk,
           std::vector<Vertex> &vertices,
           std::vector<uint32> &indices,
           glm::vec3 position,
-          glm::vec2 texture,
+          glm::vec2 uv_offset,
+          glm::vec2 uv_size,
           Direction direction)
 {
     const uint32 offset = (uint32) vertices.size();
@@ -104,7 +105,7 @@ emit_face(Chunk* chunk,
         v.position = position + CUBE_VERTICES[CUBE_INDICES[(direction * 6) + UNIQUE_INDICES[i]]];
         v.normal = CUBE_NORMALS[direction];
         // TODO(fonsi): add texture to mesh generation
-        v.texture = glm::vec3(0);
+        v.texture = (CUBE_UVS[i] * uv_size) + uv_offset;
         vertices.push_back(v);
     }
 
@@ -132,6 +133,10 @@ chunk_generate_mesh(Chunk* chunk)
                 glm::vec3 wbpos = bpos + glm::vec3(chunk->world_position.x, 0, chunk->world_position.y);
                 glm::vec3 wnpos = wbpos + dirvec;
 
+                glm::vec2 uv_unit = glm::vec2(1.0f) / glm::vec2(16.0f);
+                Direction d = (Direction)face_direction;
+                glm::vec2 uv_offset = BLOCKS[chunk->blocks[i]].texture_offset(d);
+
                 // if(!chunk_check_block_exists(chunk, npos))
                 if(!world_check_block_exists(&game_state.world, wnpos))
                 {
@@ -139,7 +144,8 @@ chunk_generate_mesh(Chunk* chunk)
                               chunk->mesh.vertices,
                               chunk->mesh.indices,
                               bpos,
-                              glm::vec3(0),
+                              glm::vec2(uv_offset.x, 16 - uv_offset.y - 1) * uv_unit,
+                              uv_unit,
                               (Direction)face_direction);
                 }
 

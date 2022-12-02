@@ -22,8 +22,18 @@ struct Shader {
     void set_uniform(char* name, uint value);
 };
 
+struct Texture {
+    uint32 handle;
+    uint32 texture_type;
+
+    void create(const char* filepath);
+    void bind();
+    void destroy();
+};
+
 struct Renderer {
     Shader world_shader;
+    Texture atlas;
     void init();
 };
 

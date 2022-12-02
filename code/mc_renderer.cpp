@@ -1,4 +1,8 @@
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 #include "mc_renderer.hpp"
+
 
 void
 Renderer::init()
@@ -6,6 +10,8 @@ Renderer::init()
     world_shader.compile_program((char*)"w:\\mycraft\\shaders\\cube.vert",
                                  (char*)"w:\\mycraft\\shaders\\cube.frag",
                                  (char*) 0);
+    atlas.create("w:\\mycraft\\res\\blocks.png");
+    atlas.bind();
 }
 
 void
@@ -156,4 +162,51 @@ Shader::set_uniform(char* name, uint value)
 {
     glUniform1ui(glGetUniformLocation(program_handle, name),
                        value);
+}
+
+void
+Texture::create(const char* filepath)
+{
+    texture_type = GL_TEXTURE_2D;
+    glGenTextures(1, &handle);
+    int width, height, num_components;
+    stbi_set_flip_vertically_on_load(1);
+    unsigned char* data = stbi_load(filepath, &width, &height, &num_components, 0);
+    if (data)
+    {
+        GLenum format;
+        switch (num_components)
+        {
+        case 1: format = GL_RED; break;
+        case 3: format = GL_RGB; break;
+        case 4: format = GL_RGBA; break;
+        };
+
+        glBindTexture(texture_type, handle);
+        glTexImage2D(texture_type, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(texture_type);
+
+        glTexParameteri(texture_type, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(texture_type, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(texture_type, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+        glTexParameteri(texture_type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+        stbi_image_free(data);
+        } else {
+        fprintf(stderr, "Failed to load texture path\n");
+        stbi_image_free(data);
+    }
+}
+
+void
+Texture::bind()
+{
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(texture_type, handle);
+}
+
+void
+Texture::destroy()
+{
+    glDeleteTextures(1, &handle);
 }

@@ -40,10 +40,10 @@ Camera::get_view()
 glm::mat4
 Camera::get_projection()
 {
-    return(glm::perspective(glm::radians(45.0f),
+    return(glm::perspective(glm::radians(60.0f),
                            SCREEN_WIDTH / SCREEN_HEIGHT,
                            0.1f,
-                           1000.f));
+                           10000.f));
 }
 
 void

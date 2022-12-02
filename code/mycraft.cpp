@@ -132,6 +132,7 @@ key_callback(GLFWwindow* handle, int key, int scancode, int action, int mods)
 void
 gamestate_init(GameState& game_state)
 {
+    block_init();
     game_state.renderer.init();
     game_state.camera.init();
     world_init(&game_state.world);
