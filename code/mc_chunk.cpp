@@ -1,6 +1,10 @@
 #include "mc_chunk.hpp"
 #include "mycraft.hpp"
 
+extern "C" {
+#include "noise1234.h"
+}
+
 inline glm::vec3
 get_block_from_camera_position(glm::vec3 camera_position)
 {
@@ -74,6 +78,7 @@ chunk_init(Chunk* chunk, glm::vec2 chunk_position)
     {
         int32 yposition = (pos / CHUNK_WIDTH) % CHUNK_WIDTH;
         if(in_range(yposition, 1, 4)) chunk->blocks[pos] = BLOCK_TYPE::LOG;
+        // chunk->blocks[pos] = BLOCK_TYPE::WOOD;
     }
 
     // initialize mesh data
@@ -141,12 +146,12 @@ chunk_generate_mesh(Chunk* chunk)
                 if(!world_check_block_exists(&game_state.world, wnpos))
                 {
                     emit_face(chunk,
-                              chunk->mesh.vertices,
-                              chunk->mesh.indices,
-                              bpos,
-                              glm::vec2(uv_offset.x, 16 - uv_offset.y - 1) * uv_unit,
-                              uv_unit,
-                              (Direction)face_direction);
+                            chunk->mesh.vertices,
+                            chunk->mesh.indices,
+                            bpos,
+                            glm::vec2(uv_offset.x, 16 - uv_offset.y - 1) * uv_unit,
+                            uv_unit,
+                            (Direction)face_direction);
                 }
 
             }
@@ -217,9 +222,6 @@ chunk_set_position(Chunk* chunk, glm::vec2 new_position)
 }
 
 
-
-
-
 INTERNAL glm::vec2
 world_chunk_coords_from_arrpos(World* world, uint32 position)
 {
@@ -280,6 +282,12 @@ world_init(World* world)
         glm::vec2 cpos = world_chunk_coords_from_arrpos(world, i);
         chunk_init(&world->chunks[i], cpos);
     }
+
+    world->throttle.max = 13;
+    world->throttle.count = 0;
+
+    // test
+    // world->throttle = {8, 0};
 }
 
 void
@@ -338,13 +346,27 @@ world_render(World* world)
 {
     for(uint32 i = 0; i < WORLD_CHUNK_COUNT; i++)
     {
-        if(world->chunks[i].remesh)
+        if(world->chunks[i].remesh &&
+           world->throttle.count < world->throttle.max)
         {
             chunk_prepare_mesh(&world->chunks[i]);
             chunk_generate_mesh(&world->chunks[i]);
             chunk_finish_mesh(&world->chunks[i]);
+            world->throttle.count++;
         }
 
         chunk_render(&world->chunks[i]);
     }
+}
+
+void
+world_generation(World* world)
+{
+    float ej = noise3(1, 2, 3);
+}
+
+void
+world_update(World* world)
+{
+    world->throttle.count = 0;
 }

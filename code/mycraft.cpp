@@ -65,6 +65,7 @@ main(void)
         process_input(window);
 
         gamestate_render(game_state);
+        gamestate_update(game_state);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -143,4 +144,10 @@ gamestate_render(GameState& game_state)
 {
     world_set_center(&game_state.world, game_state.camera.position);
     world_render(&game_state.world);
+}
+
+void
+gamestate_update(GameState& game_state)
+{
+    world_update(&game_state.world);
 }

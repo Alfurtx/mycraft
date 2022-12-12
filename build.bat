@@ -19,6 +19,7 @@ set clang_flags=%clang_flags% -o mycraft.exe
 
 pushd ".\code"
 for /R %%c in (*.cpp) do call set CFILES=%%c %%CFILES%%
+for /R %%c in (*.c) do call set CFILES=%%c %%CFILES%%
 popd
 
 pushd ".\libs\glad"

@@ -18,5 +18,6 @@ extern GameState game_state;
 
 void gamestate_init(GameState& game_state);
 void gamestate_render(GameState& game_state);
+void gamestate_update(GameState& game_state);
 
 #endif

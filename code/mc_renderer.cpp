@@ -188,7 +188,7 @@ Texture::create(const char* filepath)
 
         glTexParameteri(texture_type, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(texture_type, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(texture_type, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+        glTexParameteri(texture_type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(texture_type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
         stbi_image_free(data);

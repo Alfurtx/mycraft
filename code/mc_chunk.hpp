@@ -129,11 +129,19 @@ typedef struct World {
 
     glm::vec2 center_chunk;
     glm::vec2 origin_chunk;
+
+    struct {
+        uint32 max;
+        uint32 count;
+    } throttle;
 } World;
+
 
 void world_init(World* world);
 void world_set_center(World* world, glm::vec3 camera_position);
 void world_render(World* world);
+void world_generation(World* world);
+void world_update(World* world);
 
 inline glm::vec3 get_block_from_camera_position(glm::vec3 camera_position);
 
