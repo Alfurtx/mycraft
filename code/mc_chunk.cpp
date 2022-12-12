@@ -12,7 +12,7 @@ get_block_from_camera_position(glm::vec3 camera_position)
     result.x = camera_position.x;
 
     if(camera_position.y < 0) result.y = 0;
-    else if(camera_position.y > CHUNK_WIDTH) result.y = CHUNK_WIDTH;
+    else if(camera_position.y > CHUNK_WIDTH_Y) result.y = CHUNK_WIDTH_Y;
     else result.y = camera_position.y;
 
     result.z = camera_position.z;
@@ -31,9 +31,9 @@ INTERNAL glm::vec3
 chunk_get_block_coords_from_arrpos(int32 position)
 {
     glm::vec3 result;
-    result.z = (float)(position / (CHUNK_WIDTH * CHUNK_WIDTH));
-    result.y = (float)((position / CHUNK_WIDTH) % CHUNK_WIDTH);
-    result.x = (float)(position % CHUNK_WIDTH);
+    result.z = (float)(position / (CHUNK_WIDTH_X * CHUNK_WIDTH_Y));
+    result.y = (float)((position / CHUNK_WIDTH_X) % CHUNK_WIDTH_Y);
+    result.x = (float)(position % CHUNK_WIDTH_X);
     return(result);
 }
 
@@ -41,8 +41,8 @@ INTERNAL int32
 chunk_get_block_arrpos_from_coords(glm::vec3 coords)
 {
     return((int32)coords.x +
-           (int32)coords.y * CHUNK_WIDTH +
-           (int32)coords.z * CHUNK_WIDTH * CHUNK_WIDTH);
+           (int32)coords.y * CHUNK_WIDTH_X +
+           (int32)coords.z * CHUNK_WIDTH_Y * CHUNK_WIDTH_X);
 }
 
 INTERNAL bool
@@ -55,11 +55,17 @@ chunk_check_block_exists(Chunk* chunk, glm::vec3 coords_position)
 {
     // NOTE(fonsi): only checks coords in chunk local space (0..CHUNK_WIDTH)
     // be careful with world space (allows all values)
-    for(int32 i = 0; i < 3; i++)
-        if(coords_position[i] < 0 || coords_position[i] >= CHUNK_WIDTH)
-        {
-            return(false);
-        }
+    for(int32 i = 0; i < 3; i++) {
+        if(coords_position[i] < 0) return(false);
+        if(i == 0 && coords_position[i] >= CHUNK_WIDTH_X) return(false);
+        if(i == 1 && coords_position[i] >= CHUNK_WIDTH_Y) return(false);
+        if(i == 2 && coords_position[i] >= CHUNK_WIDTH_Z) return(false);
+
+        // if(coords_position[i] < 0 || coords_position[i] >= CHUNK_WIDTH)
+        // {
+        //     return(false);
+        // }
+    }
 
     int32 arrpos = chunk_get_block_arrpos_from_coords(coords_position);
     return(chunk->blocks[arrpos] != 0);
@@ -71,12 +77,12 @@ void
 chunk_init(Chunk* chunk, glm::vec2 chunk_position)
 {
     chunk->chunk_position = chunk_position;
-    chunk->world_position = { chunk_position.x * CHUNK_WIDTH, chunk_position.y * CHUNK_WIDTH };
+    chunk->world_position = { chunk_position.x * CHUNK_WIDTH_X, chunk_position.y * CHUNK_WIDTH_Z };
 
     // Fill out all blocks at heigh level 1 as grass blocks
     for(int32 pos = 0; pos < CHUNK_BLOCK_COUNT; pos++)
     {
-        int32 yposition = (pos / CHUNK_WIDTH) % CHUNK_WIDTH;
+        int32 yposition = (pos / CHUNK_WIDTH_X) % CHUNK_WIDTH_Y;
         if(in_range(yposition, 1, 4)) chunk->blocks[pos] = BLOCK_TYPE::LOG;
         // chunk->blocks[pos] = BLOCK_TYPE::WOOD;
     }
@@ -218,7 +224,7 @@ void
 chunk_set_position(Chunk* chunk, glm::vec2 new_position)
 {
     chunk->chunk_position = new_position;
-    chunk->world_position = { new_position.x * CHUNK_WIDTH, new_position.y * CHUNK_WIDTH };
+    chunk->world_position = { new_position.x * CHUNK_WIDTH_X, new_position.y * CHUNK_WIDTH_Z };
 }
 
 
@@ -249,16 +255,16 @@ world_check_block_exists(World* world, glm::vec3 position)
 {
     // check block is IN the world
     glm::vec2 last_chunk_pos = world_chunk_coords_from_arrpos(world, WORLD_CHUNK_COUNT-1);
-    if( !in_range(position.x, world->origin_chunk.x * CHUNK_WIDTH, last_chunk_pos.x * CHUNK_WIDTH + CHUNK_WIDTH) ||
-        !in_range(position.z, world->origin_chunk.y * CHUNK_WIDTH, last_chunk_pos.y * CHUNK_WIDTH + CHUNK_WIDTH) ||
-        !in_range(position.y, 0, CHUNK_WIDTH))
+    if( !in_range(position.x, world->origin_chunk.x * CHUNK_WIDTH_X, last_chunk_pos.x * CHUNK_WIDTH_X + CHUNK_WIDTH_X) ||
+        !in_range(position.z, world->origin_chunk.y * CHUNK_WIDTH_Z, last_chunk_pos.y * CHUNK_WIDTH_Z + CHUNK_WIDTH_Z) ||
+        !in_range(position.y, 0, CHUNK_WIDTH_Y))
     {
         return(false);
     }
 
     // get the chunk it belongs to
-    glm::vec2 chunk_coords = glm::vec2(floor(position.x / CHUNK_WIDTH), floor(position.z / CHUNK_WIDTH));
-    glm::vec2 chunk_wcoords = glm::vec2(chunk_coords.x * CHUNK_WIDTH, chunk_coords.y * CHUNK_WIDTH);
+    glm::vec2 chunk_coords = glm::vec2(floor(position.x / CHUNK_WIDTH_X), floor(position.z / CHUNK_WIDTH_Z));
+    glm::vec2 chunk_wcoords = glm::vec2(chunk_coords.x * CHUNK_WIDTH_X, chunk_coords.y * CHUNK_WIDTH_Z);
     glm::vec3 block_local_pos = glm::vec3(position.x - chunk_wcoords.x, position.y, position.z - chunk_wcoords.y);
     uint32 carrpos = world_chunk_arrpos_from_coords(world, chunk_coords);
     Chunk* chunk = &world->chunks[carrpos];
@@ -297,18 +303,18 @@ world_set_center(World* world, glm::vec3 camera_position)
     glm::vec3 player_position = get_block_from_camera_position(camera_position);
 
     // check if player is in center chunk
-    float minx = world->center_chunk.x * CHUNK_WIDTH;
-    float miny = world->center_chunk.y * CHUNK_WIDTH;
-    float maxx = world->center_chunk.x * CHUNK_WIDTH + CHUNK_WIDTH;
-    float maxy = world->center_chunk.y * CHUNK_WIDTH + CHUNK_WIDTH;
+    float minx = world->center_chunk.x * CHUNK_WIDTH_X;
+    float miny = world->center_chunk.y * CHUNK_WIDTH_Z;
+    float maxx = world->center_chunk.x * CHUNK_WIDTH_X + CHUNK_WIDTH_X;
+    float maxy = world->center_chunk.y * CHUNK_WIDTH_Z + CHUNK_WIDTH_Z;
 
     if(in_range(player_position.x, minx, maxx) &&
        in_range(player_position.z, miny, maxy))
         return;
 
     // change center chunk
-    glm::vec2 chunk_coords = glm::vec2(floor(player_position.x / CHUNK_WIDTH),
-                                       floor(player_position.z / CHUNK_WIDTH));
+    glm::vec2 chunk_coords = glm::vec2(floor(player_position.x / CHUNK_WIDTH_X),
+                                       floor(player_position.z / CHUNK_WIDTH_Z));
     world->center_chunk = chunk_coords;
 
     // change origin chunk

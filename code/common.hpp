@@ -90,11 +90,14 @@ static glm::vec3 DIRVECS[] = {
 
 global const float32 SCREEN_WIDTH = 1920;
 global const float32 SCREEN_HEIGHT = 1080;
-global const int32 CHUNK_WIDTH = 8;
-global const int32 CHUNK_BLOCK_COUNT = CHUNK_WIDTH * CHUNK_WIDTH * CHUNK_WIDTH;
+// global const int32 CHUNK_WIDTH = 8;
+global const int32 CHUNK_WIDTH_X = 16;
+global const int32 CHUNK_WIDTH_Y = 256;
+global const int32 CHUNK_WIDTH_Z = 16;
+global const int32 CHUNK_BLOCK_COUNT = CHUNK_WIDTH_X * CHUNK_WIDTH_Y * CHUNK_WIDTH_Z;
 
 // NOTE(fonsi): This should always be indivisible by 2
-global const int32 WORLD_CHUNK_WIDTH = 31;
+global const int32 WORLD_CHUNK_WIDTH = 13;
 global const int32 WORLD_CHUNK_COUNT = WORLD_CHUNK_WIDTH * WORLD_CHUNK_WIDTH;
 
 enum BLOCK_TYPE {
